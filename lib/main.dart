@@ -1,12 +1,23 @@
+@JS()
+import 'package:js/js.dart';
 import 'package:flutter/material.dart';
+import './lacuna_signer_widget.dart';
+import 'package:http/http.dart' as http;
+import 'package:webview_flutter/webview_flutter.dart';
 
 void main() {
   runApp(const MyApp());
 }
 
+Future<String> postEmbedUrl() async {
+  // Perform POST Function
+  var url = Uri.parse('https://localhost:5001/api/signer/embedded');
+  var response = await http.post(url, body: {});
+  return response.body;
+}
+
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
-
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -24,7 +35,7 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'Signer Demo Home Page'),
     );
   }
 }
@@ -49,6 +60,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
+  late WebViewController _webViewController;
 
   void _incrementCounter() {
     setState(() {
@@ -59,6 +71,29 @@ class _MyHomePageState extends State<MyHomePage> {
       // called again, and so nothing would appear to happen.
       _counter++;
     });
+  }
+
+  Future<String> _sign() async {
+    var embedUrl = await postEmbedUrl();
+    // var widget = new LacunaSignerWidget();
+    // widget.render(embedUrl, '#output');
+
+    showDialog(
+        context: context,
+        builder: (BuildContext context) => AlertDialog(
+              title: const Text('Result'),
+              content: HtmlElementView(
+                viewType: embedUrl,
+              ),
+              actions: [
+                ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: const Text('Go Back'))
+              ],
+            ));
+    return embedUrl;
   }
 
   @override
@@ -101,6 +136,10 @@ class _MyHomePageState extends State<MyHomePage> {
             Text(
               '$_counter',
               style: Theme.of(context).textTheme.headline4,
+            ),
+            ElevatedButton(
+              onPressed: _sign,
+              child: const Icon(Icons.add_ic_call),
             ),
           ],
         ),
