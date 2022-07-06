@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "flutter_signer_port",
+            "name": "flutter_web_port_4200",
             "request": "launch",
             "type": "dart",
             "args": ["-d", "chrome","--web-port", "4200", "--web-renderer", "canvaskit"]
@@ -14,7 +14,7 @@
             "name": "flutter_cellphone",
             "request": "launch",
             "type": "dart",
-            "args": ["-d", "","--web-port", "4200", "--web-renderer", "canvaskit"]
+            "flutterMode": "debug"
         },
 
         {

@@ -1,9 +1,10 @@
-@JS()
-import 'package:js/js.dart';
+import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
-import './lacuna_signer_widget.dart';
 import 'package:http/http.dart' as http;
 import 'package:webview_flutter/webview_flutter.dart';
+
+import './lacuna_signer_widget.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,9 +12,13 @@ void main() {
 
 Future<String> postEmbedUrl() async {
   // Perform POST Function
-  var url = Uri.parse('http://10.0.2.2:5001/api/signer/embedded/');
+  HttpOverrides.global = MyHttpOverrides();
+  // 10.0.2.2 is the default localhost for Android Emulator
+  // if you wish to run on Flutter web, please refer to localhost as usual
+  // For other platforms, please refer to: https://medium.com/@podcoder/connecting-flutter-application-to-localhost-a1022df63130
+  var url = Uri.parse('https://10.0.2.2:5001/api/signer/embedded/');
   var response = await http.post(url, body: {});
-  print(response);
+  print(response.body);
   return response.body;
 }
 
@@ -59,9 +64,31 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
+class WebViewPage extends StatelessWidget {
+  final String url;
+  WebViewPage({
+    required this.url,
+  });
+  final Completer<WebViewController> _controller =
+      Completer<WebViewController>();
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: WebView(
+        initialUrl: url,
+        javascriptMode: JavascriptMode.unrestricted,
+        onWebViewCreated: (WebViewController webViewController) {
+          _controller.complete(webViewController);
+        },
+      ),
+    );
+  }
+}
+
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
-  late WebViewController _webViewController;
+  final Completer<WebViewController> _controller =
+      Completer<WebViewController>();
 
   void _incrementCounter() {
     setState(() {
@@ -74,28 +101,15 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  Future<String> _sign() async {
+  void _sign() async {
     var embedUrl = await postEmbedUrl();
     print(embedUrl);
-    // var widget = new LacunaSignerWidget();
-    // widget.render(embedUrl, '#output');
+    renderWebView(embedUrl);
+  }
 
-    showDialog(
-        context: context,
-        builder: (BuildContext context) => AlertDialog(
-              title: const Text('Result'),
-              content: HtmlElementView(
-                viewType: embedUrl,
-              ),
-              actions: [
-                ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: const Text('Go Back'))
-              ],
-            ));
-    return embedUrl;
+  void renderWebView(String url) {
+    Navigator.of(context).push(MaterialPageRoute(
+        builder: (BuildContext context) => WebViewPage(url: url)));
   }
 
   @override
@@ -133,15 +147,12 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
+              "Welcome to embedded signatures mobile sample!",
+              textScaleFactor: 1.2,
             ),
             ElevatedButton(
               onPressed: _sign,
-              child: const Icon(Icons.add_ic_call),
+              child: const Text("Sign document"),
             ),
           ],
         ),
