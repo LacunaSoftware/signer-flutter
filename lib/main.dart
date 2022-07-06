@@ -11,8 +11,9 @@ void main() {
 
 Future<String> postEmbedUrl() async {
   // Perform POST Function
-  var url = Uri.parse('https://localhost:5001/api/signer/embedded');
+  var url = Uri.parse('http://10.0.2.2:5001/api/signer/embedded/');
   var response = await http.post(url, body: {});
+  print(response);
   return response.body;
 }
 
@@ -75,6 +76,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<String> _sign() async {
     var embedUrl = await postEmbedUrl();
+    print(embedUrl);
     // var widget = new LacunaSignerWidget();
     // widget.render(embedUrl, '#output');
 
