@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -16,8 +17,9 @@ Future<String> postEmbedUrl() async {
   // 10.0.2.2 is the default localhost for Android Emulator
   // if you wish to run on Flutter web, please refer to localhost as usual
   // For other platforms, please refer to: https://medium.com/@podcoder/connecting-flutter-application-to-localhost-a1022df63130
-  var url = Uri.parse('https://10.0.2.2:5001/api/signer/embedded/');
-  var response = await http.post(url, body: {});
+  var url = Uri.parse(
+      'https://demos.lacunasoftware.com/api/signer/embedded?allowElectronic=true');
+  var response = await http.post(url);
   print(response.body);
   return response.body;
 }
@@ -87,6 +89,7 @@ class WebViewPage extends StatelessWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
+  bool _isPressed = false;
   final Completer<WebViewController> _controller =
       Completer<WebViewController>();
 
@@ -102,6 +105,10 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _sign() async {
+    // disables button after click
+    setState(() {
+      _isPressed = true;
+    });
     var embedUrl = await postEmbedUrl();
     print(embedUrl);
     renderWebView(embedUrl);
@@ -151,7 +158,7 @@ class _MyHomePageState extends State<MyHomePage> {
               textScaleFactor: 1.2,
             ),
             ElevatedButton(
-              onPressed: _sign,
+              onPressed: _isPressed == false ? _sign : null,
               child: const Text("Sign document"),
             ),
           ],
