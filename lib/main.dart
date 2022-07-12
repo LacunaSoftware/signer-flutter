@@ -2,8 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
-import 'package:webview_flutter/webview_flutter.dart';
 
 import './lacuna_signer_widget.dart';
 
@@ -27,6 +28,7 @@ Future<String> postEmbedUrl() async {
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
   // This widget is the root of your application.
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -68,30 +70,71 @@ class MyHomePage extends StatefulWidget {
 
 class WebViewPage extends StatelessWidget {
   final String url;
-  WebViewPage({
+  const WebViewPage({
     required this.url,
   });
-  final Completer<WebViewController> _controller =
-      Completer<WebViewController>();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: WebView(
-        initialUrl: url,
-        javascriptMode: JavascriptMode.unrestricted,
-        onWebViewCreated: (WebViewController webViewController) {
-          _controller.complete(webViewController);
-        },
-      ),
-    );
+        body: InAppWebView(
+            initialUrlRequest: URLRequest(url: Uri.parse(url)),
+            initialOptions: InAppWebViewGroupOptions(
+                crossPlatform: InAppWebViewOptions(),
+                android: AndroidInAppWebViewOptions(
+//useHybridComposition: true
+                    )),
+            androidOnGeolocationPermissionsShowPrompt:
+                (InAppWebViewController controller, String origin) async {
+              bool result = await showDialog(
+                context: context,
+                barrierDismissible: false, // user must tap button!
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Text('Allow access location $origin'),
+                    content: SingleChildScrollView(
+                      child: ListBody(
+                        children: [
+                          Text('Allow access location $origin'),
+                        ],
+                      ),
+                    ),
+                    actions: [
+                      TextButton(
+                        child: Text('Allow'),
+                        onPressed: () {
+                          Navigator.of(context).pop(true);
+                        },
+                      ),
+                      TextButton(
+                        child: Text('Denied'),
+                        onPressed: () {
+                          Navigator.of(context).pop(false);
+                        },
+                      ),
+                    ],
+                  );
+                },
+              );
+              if (result) {
+                return Future.value(GeolocationPermissionShowPromptResponse(
+                    origin: origin, allow: true, retain: true));
+              } else {
+                return Future.value(GeolocationPermissionShowPromptResponse(
+                    origin: origin, allow: false, retain: false));
+              }
+            },
+            androidOnPermissionRequest: (controller, origin, resources) async {
+              return PermissionRequestResponse(
+                  resources: resources,
+                  action: PermissionRequestResponseAction.GRANT);
+            }));
   }
 }
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
   bool _isPressed = false;
-  final Completer<WebViewController> _controller =
-      Completer<WebViewController>();
+  late InAppWebViewController webViewController;
 
   void _incrementCounter() {
     setState(() {
@@ -110,11 +153,14 @@ class _MyHomePageState extends State<MyHomePage> {
       _isPressed = true;
     });
     var embedUrl = await postEmbedUrl();
-    print(embedUrl);
     renderWebView(embedUrl);
   }
 
-  void renderWebView(String url) {
+  Future<void> renderWebView(String url) async {
+    LocationPermission permission = await Geolocator.checkPermission();
+    await Geolocator.requestPermission();
+    await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+
     Navigator.of(context).push(MaterialPageRoute(
         builder: (BuildContext context) => WebViewPage(url: url)));
   }
