@@ -72,7 +72,6 @@ class MyHomePage extends StatefulWidget {
 class WebViewPage extends StatelessWidget {
   final String url;
   final bool disableDocumentPreview;
-  late InAppWebViewController _controller;
   WebViewPage({
     Key? key,
     required this.url,
@@ -91,6 +90,13 @@ class WebViewPage extends StatelessWidget {
                       'embedUrl': url,
                       'disableDocumentPreview': disableDocumentPreview
                     };
+                  });
+              controller.addJavaScriptHandler(
+                  handlerName: 'unrenderView',
+                  callback: (args) {
+                    print("kkk eae men");
+
+                    Navigator.pop(context);
                   });
             },
             initialOptions: InAppWebViewGroupOptions(
@@ -220,11 +226,11 @@ class _MyHomePageState extends State<MyHomePage> {
               textScaleFactor: 1.2,
             ),
             ElevatedButton(
-              onPressed: () => _isPressed == false ? _sign(false) : null,
+              onPressed: () => _sign(false),
               child: const Text("Sign document"),
             ),
             ElevatedButton(
-              onPressed: () => _isPressed == false ? _sign(true) : null,
+              onPressed: () => _sign(true),
               child: const Text("Sign document without preview"),
             ),
           ],

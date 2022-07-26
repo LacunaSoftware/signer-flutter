@@ -53,7 +53,9 @@
                 .then(function (result) {
                     var widget = new LacunaSignerWidget({ disableDocumentPreview: result.disableDocumentPreview });
                     widget.on(widget.events.documentSigned, function (e) {
-                        alert('Document ' + e.id + ' signed');
+                        alert('Document ' + e.id + ' signed\nReturning to main screen');
+
+                        window.flutter_inappwebview.callHandler('unrenderView');
                     });
                     widget.render(result.embedUrl, 'embed-container');
                 });
