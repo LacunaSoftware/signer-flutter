@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
@@ -70,14 +71,28 @@ class MyHomePage extends StatefulWidget {
 
 class WebViewPage extends StatelessWidget {
   final String url;
-  const WebViewPage({
+  final bool disableDocumentPreview;
+  late InAppWebViewController _controller;
+  WebViewPage({
+    Key? key,
     required this.url,
-  });
+    required this.disableDocumentPreview,
+  }) : super(key: key);
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         body: InAppWebView(
-            initialUrlRequest: URLRequest(url: Uri.parse(url)),
+            initialFile: 'assets/signer_page.html',
+            onWebViewCreated: (controller) {
+              controller.addJavaScriptHandler(
+                  handlerName: 'sign',
+                  callback: (args) {
+                    return {
+                      'embedUrl': url,
+                      'disableDocumentPreview': disableDocumentPreview
+                    };
+                  });
+            },
             initialOptions: InAppWebViewGroupOptions(
                 crossPlatform: InAppWebViewOptions(),
                 android: AndroidInAppWebViewOptions(
@@ -147,22 +162,23 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  void _sign() async {
+  void _sign(bool disableDocumentPreview) async {
     // disables button after click
     setState(() {
       _isPressed = true;
     });
     var embedUrl = await postEmbedUrl();
-    renderWebView(embedUrl);
+    renderWebView(embedUrl, disableDocumentPreview);
   }
 
-  Future<void> renderWebView(String url) async {
+  Future<void> renderWebView(String url, bool disableDocumentPreview) async {
     LocationPermission permission = await Geolocator.checkPermission();
     await Geolocator.requestPermission();
     await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
 
     Navigator.of(context).push(MaterialPageRoute(
-        builder: (BuildContext context) => WebViewPage(url: url)));
+        builder: (BuildContext context) => WebViewPage(
+            url: url, disableDocumentPreview: disableDocumentPreview)));
   }
 
   @override
@@ -204,8 +220,12 @@ class _MyHomePageState extends State<MyHomePage> {
               textScaleFactor: 1.2,
             ),
             ElevatedButton(
-              onPressed: _isPressed == false ? _sign : null,
+              onPressed: () => _isPressed == false ? _sign(false) : null,
               child: const Text("Sign document"),
+            ),
+            ElevatedButton(
+              onPressed: () => _isPressed == false ? _sign(true) : null,
+              child: const Text("Sign document without preview"),
             ),
           ],
         ),
