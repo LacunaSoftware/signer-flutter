@@ -22,7 +22,6 @@ Future<String> postEmbedUrl() async {
   var url = Uri.parse(
       'https://demos.lacunasoftware.com/api/signer/embedded?allowElectronic=true');
   var response = await http.post(url);
-  print(response.body);
   return response.body;
 }
 
@@ -94,8 +93,6 @@ class WebViewPage extends StatelessWidget {
               controller.addJavaScriptHandler(
                   handlerName: 'unrenderView',
                   callback: (args) {
-                    print("kkk eae men");
-
                     Navigator.pop(context);
                   });
             },
@@ -153,7 +150,6 @@ class WebViewPage extends StatelessWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
   bool _isPressed = false;
   late InAppWebViewController webViewController;
 
@@ -164,7 +160,6 @@ class _MyHomePageState extends State<MyHomePage> {
       // so that the display can reflect the updated values. If we changed
       // _counter without calling setState(), then the build method would not be
       // called again, and so nothing would appear to happen.
-      _counter++;
     });
   }
 
