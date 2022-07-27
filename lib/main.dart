@@ -2,8 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
-import 'package:webview_flutter/webview_flutter.dart';
 
 import './lacuna_signer_widget.dart';
 
@@ -14,23 +16,21 @@ void main() {
 Future<String> postEmbedUrl() async {
   // Perform POST Function
   HttpOverrides.global = MyHttpOverrides();
-  // 10.0.2.2 is the default localhost for Android Emulator
-  // if you wish to run on Flutter web, please refer to localhost as usual
-  // For other platforms, please refer to: https://medium.com/@podcoder/connecting-flutter-application-to-localhost-a1022df63130
   var url = Uri.parse(
       'https://demos.lacunasoftware.com/api/signer/embedded?allowElectronic=true');
   var response = await http.post(url);
-  print(response.body);
   return response.body;
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
   // This widget is the root of your application.
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Signer Flutter Demo',
+      title: 'Embedded Signer Flutter Demo',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -68,55 +68,101 @@ class MyHomePage extends StatefulWidget {
 
 class WebViewPage extends StatelessWidget {
   final String url;
+  final bool disableDocumentPreview;
   WebViewPage({
+    Key? key,
     required this.url,
-  });
-  final Completer<WebViewController> _controller =
-      Completer<WebViewController>();
+    required this.disableDocumentPreview,
+  }) : super(key: key);
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: WebView(
-        initialUrl: url,
-        javascriptMode: JavascriptMode.unrestricted,
-        onWebViewCreated: (WebViewController webViewController) {
-          _controller.complete(webViewController);
-        },
-      ),
-    );
+        body: InAppWebView(
+            initialFile: 'assets/signer_page.html',
+            onWebViewCreated: (controller) {
+              controller.addJavaScriptHandler(
+                  handlerName: 'sign',
+                  callback: (args) {
+                    return {
+                      'embedUrl': url,
+                      'disableDocumentPreview': disableDocumentPreview
+                    };
+                  });
+              controller.addJavaScriptHandler(
+                  handlerName: 'unrenderView',
+                  callback: (args) {
+                    Navigator.pop(context);
+                  });
+            },
+            initialOptions: InAppWebViewGroupOptions(
+                crossPlatform: InAppWebViewOptions(),
+                android: AndroidInAppWebViewOptions(
+//useHybridComposition: true
+                    )),
+            androidOnGeolocationPermissionsShowPrompt:
+                (InAppWebViewController controller, String origin) async {
+              bool result = await showDialog(
+                context: context,
+                barrierDismissible: false, // user must tap button!
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Text('Allow access location $origin'),
+                    content: SingleChildScrollView(
+                      child: ListBody(
+                        children: [
+                          Text('Allow access location $origin'),
+                        ],
+                      ),
+                    ),
+                    actions: [
+                      TextButton(
+                        child: Text('Allow'),
+                        onPressed: () {
+                          Navigator.of(context).pop(true);
+                        },
+                      ),
+                      TextButton(
+                        child: Text('Denied'),
+                        onPressed: () {
+                          Navigator.of(context).pop(false);
+                        },
+                      ),
+                    ],
+                  );
+                },
+              );
+              if (result) {
+                return Future.value(GeolocationPermissionShowPromptResponse(
+                    origin: origin, allow: true, retain: true));
+              } else {
+                return Future.value(GeolocationPermissionShowPromptResponse(
+                    origin: origin, allow: false, retain: false));
+              }
+            },
+            androidOnPermissionRequest: (controller, origin, resources) async {
+              return PermissionRequestResponse(
+                  resources: resources,
+                  action: PermissionRequestResponseAction.GRANT);
+            }));
   }
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-  bool _isPressed = false;
-  final Completer<WebViewController> _controller =
-      Completer<WebViewController>();
+  late InAppWebViewController webViewController;
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
-  void _sign() async {
-    // disables button after click
-    setState(() {
-      _isPressed = true;
-    });
+  void _sign(bool disableDocumentPreview) async {
     var embedUrl = await postEmbedUrl();
-    print(embedUrl);
-    renderWebView(embedUrl);
+    renderWebView(embedUrl, disableDocumentPreview);
   }
 
-  void renderWebView(String url) {
+  Future<void> renderWebView(String url, bool disableDocumentPreview) async {
+    LocationPermission permission = await Geolocator.checkPermission();
+    await Geolocator.requestPermission();
+    await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+
     Navigator.of(context).push(MaterialPageRoute(
-        builder: (BuildContext context) => WebViewPage(url: url)));
+        builder: (BuildContext context) => WebViewPage(
+            url: url, disableDocumentPreview: disableDocumentPreview)));
   }
 
   @override
@@ -128,47 +174,42 @@ class _MyHomePageState extends State<MyHomePage> {
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
     return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
       body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              "Welcome to embedded signatures mobile sample!",
-              textScaleFactor: 1.2,
-            ),
-            ElevatedButton(
-              onPressed: _isPressed == false ? _sign : null,
-              child: const Text("Sign document"),
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+          // Center is a layout widget. It takes a single child and positions it
+          // in the middle of the parent.
+          child: Column(
+        // Column is also a layout widget. It takes a list of children and
+        // arranges them vertically. By default, it sizes itself to fit its
+        // children horizontally, and tries to be as tall as its parent.
+        //
+        // Invoke "debug painting" (press "p" in the console, choose the
+        // "Toggle Debug Paint" action from the Flutter Inspector in Android
+        // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
+        // to see the wireframe for each widget.
+        //
+        // Column has various properties to control how it sizes itself and
+        // how it positions its children. Here we use mainAxisAlignment to
+        // center the children vertically; the main axis here is the vertical
+        // axis because Columns are vertical (the cross axis would be
+        // horizontal).
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          const Text(
+            "Welcome to the embedded signatures mobile sample!",
+            textScaleFactor: 1.0,
+            style: TextStyle(fontSize: 16, height: 4.0),
+          ),
+          const Text("Please select an option:", textScaleFactor: 1.2),
+          ElevatedButton(
+            onPressed: () => _sign(false),
+            child: const Text("Sign document"),
+          ),
+          ElevatedButton(
+            onPressed: () => _sign(true),
+            child: const Text("Sign document without preview"),
+          ),
+        ],
+      )), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }

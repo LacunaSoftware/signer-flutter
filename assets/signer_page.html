@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+    /* With preview (document) */
+    .frame-container {
+        position: relative;
+        width: 100%;
+        height: 0; /*doesn't change anything*/
+        padding-bottom: 80.25%; /*changes if height of frame responsive is >200%*/
+    }
+
+    .frame-responsive {
+        width: 100%;
+        height: 200%; /*actually changes height*/
+        position: absolute;
+        top: 0;
+        left: 0;
+        border: none;
+    }
+    /* End region with preview (document) */
+
+    /* Without preview (document) */
+    .no-preview-frame-container {
+        position: relative;
+        width: 100%;
+        height: 0; /*doesn't change anything*/
+        padding-bottom: 60.25%; /*changes if height of frame responsive is >200%*/
+    }
+
+    .no-preview-frame-container .frame-responsive {
+        width: 100%;
+        height: 200%; /*actually changes height*/
+        position: absolute;
+        top: 60%;
+        left: 0;
+        border: none;
+    }
+    /* End region without preview (document) */
+
+
+</style>
+
+<body>
+    <script type="text/javascript" src="https://cdn.lacunasoftware.com/libs/signer/lacuna-signer-widget-0.5.0.min.js"
+        integrity="sha256-AVAkc2mvhbaWVqyfqHomvdnzhPOLHDn0QLCifiD/Zpk=" crossorigin="anonymous"></script>
+    <script type="text/javascript">
+        window.addEventListener("flutterInAppWebViewPlatformReady", function (event) {
+            window.flutter_inappwebview.callHandler('sign')
+                .then(function (result) {
+                    var element = document.getElementById('embed-container');
+                    var widget = new LacunaSignerWidget({ disableDocumentPreview: result.disableDocumentPreview });
+                    widget.on(widget.events.documentSigned, function (e) {
+                        alert('Document ' + e.id + ' signed\nReturning to main screen');
+                        element.classList.remove("no-preview-frame-container")
+                        element.classList.add("frame-container");
+                        window.flutter_inappwebview.callHandler('unrenderView');
+                    });
+
+                    if(result.disableDocumentPreview){
+                        element.classList.add("no-preview-frame-container");
+                        element.classList.remove("frame-container");
+                    }
+                    widget.render(result.embedUrl, 'embed-container');
+                });
+        });
+    </script>
+
+    <div id="embed-container" class="frame-container">
+    </div>
+
+</body>
+
+</html>
