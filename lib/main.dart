@@ -16,9 +16,6 @@ void main() {
 Future<String> postEmbedUrl() async {
   // Perform POST Function
   HttpOverrides.global = MyHttpOverrides();
-  // 10.0.2.2 is the default localhost for Android Emulator
-  // if you wish to run on Flutter web, please refer to localhost as usual
-  // For other platforms, please refer to: https://medium.com/@podcoder/connecting-flutter-application-to-localhost-a1022df63130
   var url = Uri.parse(
       'https://demos.lacunasoftware.com/api/signer/embedded?allowElectronic=true');
   var response = await http.post(url);
@@ -32,7 +29,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Signer Flutter Demo',
+      title: 'Embedded Signer Flutter Demo',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -150,24 +148,9 @@ class WebViewPage extends StatelessWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  bool _isPressed = false;
   late InAppWebViewController webViewController;
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-    });
-  }
-
   void _sign(bool disableDocumentPreview) async {
-    // disables button after click
-    setState(() {
-      _isPressed = true;
-    });
     var embedUrl = await postEmbedUrl();
     renderWebView(embedUrl, disableDocumentPreview);
   }
@@ -191,51 +174,42 @@ class _MyHomePageState extends State<MyHomePage> {
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
     return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
       body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              "Welcome to embedded signatures mobile sample!",
-              textScaleFactor: 1.2,
-            ),
-            ElevatedButton(
-              onPressed: () => _sign(false),
-              child: const Text("Sign document"),
-            ),
-            ElevatedButton(
-              onPressed: () => _sign(true),
-              child: const Text("Sign document without preview"),
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+          // Center is a layout widget. It takes a single child and positions it
+          // in the middle of the parent.
+          child: Column(
+        // Column is also a layout widget. It takes a list of children and
+        // arranges them vertically. By default, it sizes itself to fit its
+        // children horizontally, and tries to be as tall as its parent.
+        //
+        // Invoke "debug painting" (press "p" in the console, choose the
+        // "Toggle Debug Paint" action from the Flutter Inspector in Android
+        // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
+        // to see the wireframe for each widget.
+        //
+        // Column has various properties to control how it sizes itself and
+        // how it positions its children. Here we use mainAxisAlignment to
+        // center the children vertically; the main axis here is the vertical
+        // axis because Columns are vertical (the cross axis would be
+        // horizontal).
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          const Text(
+            "Welcome to the embedded signatures mobile sample!",
+            textScaleFactor: 1.0,
+            style: TextStyle(fontSize: 16, height: 4.0),
+          ),
+          const Text("Please select an option:", textScaleFactor: 1.2),
+          ElevatedButton(
+            onPressed: () => _sign(false),
+            child: const Text("Sign document"),
+          ),
+          ElevatedButton(
+            onPressed: () => _sign(true),
+            child: const Text("Sign document without preview"),
+          ),
+        ],
+      )), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
