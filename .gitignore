@@ -47,4 +47,5 @@ app.*.map.json
 /android/app/release
 
 #VSCode folder
-.vscode
+.vscode/*
+.vscode/launch.json
