@@ -12,35 +12,39 @@ void main() {
 }
 
 List<DropdownMenuItem<String>> lacunaThemeItems = [
-  DropdownMenuItem(child: Text("Default theme"), value: ""),
-  DropdownMenuItem(child: Text("Amaranth Pacific Blue"), value: "apb"),
-  DropdownMenuItem(child: Text("Amazon Cornell Red"), value: "acr"),
-  DropdownMenuItem(child: Text("Azure Lime Green"), value: "azg"),
-  DropdownMenuItem(child: Text("Castleton Green Orange"), value: "cgo"),
-  DropdownMenuItem(child: Text("Cerulean Lime Green"), value: "clg"),
-  DropdownMenuItem(child: Text("Charcoal Amazonite"), value: "cam"),
-  DropdownMenuItem(child: Text("Cobalt Lemon Curry"), value: "clc"),
-  DropdownMenuItem(child: Text("Dark Cerulean Green"), value: "dcg"),
-  DropdownMenuItem(child: Text("Dark Grey Yellow"), value: "dgy"),
-  DropdownMenuItem(child: Text("Dark Indigo Red"), value: "dir"),
-  DropdownMenuItem(child: Text("English Vermillion Arsenic"), value: "eva"),
-  DropdownMenuItem(child: Text("Green Dark Coral"), value: "gdc"),
-  DropdownMenuItem(child: Text("Independence Green"), value: "idg"),
-  DropdownMenuItem(child: Text("Metallic Seaweed Emerald"), value: "mse"),
-  DropdownMenuItem(child: Text("Onyx Satin Gold"), value: "osg"),
-  DropdownMenuItem(child: Text("Oxford Blue Green"), value: "obg"),
-  DropdownMenuItem(child: Text("Persian Plum Sand"), value: "pps"),
-  DropdownMenuItem(child: Text("Queen Blue Mint"), value: "qbm"),
-  DropdownMenuItem(child: Text("Teal Blue Gold"), value: "tbg"),
-  DropdownMenuItem(child: Text("Viridian Green Yellow"), value: "vgy"),
-  DropdownMenuItem(child: Text("International Orange Green"), value: "iog"),
-  DropdownMenuItem(child: Text("Onyx Carrot Orange"), value: "oco"),
-  DropdownMenuItem(child: Text("International Orange Apricot"), value: "ioa"),
-  DropdownMenuItem(child: Text("Generic Viridian Blue"), value: "gvb"),
-  DropdownMenuItem(child: Text("Space Cadet Yellow"), value: "scy"),
-  DropdownMenuItem(child: Text("Blue Venetian Red"), value: "bvr"),
-  DropdownMenuItem(child: Text("Vivid Sky Blue"), value: "vsb"),
-  DropdownMenuItem(child: Text("Chartreuse Traditional Violet"), value: "ctv"),
+  const DropdownMenuItem(value: "", child: Text("Default theme")),
+  const DropdownMenuItem(value: "apb", child: Text("Amaranth Pacific Blue")),
+  const DropdownMenuItem(value: "acr", child: Text("Amazon Cornell Red")),
+  const DropdownMenuItem(value: "azg", child: Text("Azure Lime Green")),
+  const DropdownMenuItem(value: "cgo", child: Text("Castleton Green Orange")),
+  const DropdownMenuItem(value: "clg", child: Text("Cerulean Lime Green")),
+  const DropdownMenuItem(value: "cam", child: Text("Charcoal Amazonite")),
+  const DropdownMenuItem(value: "clc", child: Text("Cobalt Lemon Curry")),
+  const DropdownMenuItem(value: "dcg", child: Text("Dark Cerulean Green")),
+  const DropdownMenuItem(value: "dgy", child: Text("Dark Grey Yellow")),
+  const DropdownMenuItem(value: "dir", child: Text("Dark Indigo Red")),
+  const DropdownMenuItem(
+      value: "eva", child: Text("English Vermillion Arsenic")),
+  const DropdownMenuItem(value: "gdc", child: Text("Green Dark Coral")),
+  const DropdownMenuItem(value: "idg", child: Text("Independence Green")),
+  const DropdownMenuItem(value: "mse", child: Text("Metallic Seaweed Emerald")),
+  const DropdownMenuItem(value: "osg", child: Text("Onyx Satin Gold")),
+  const DropdownMenuItem(value: "obg", child: Text("Oxford Blue Green")),
+  const DropdownMenuItem(value: "pps", child: Text("Persian Plum Sand")),
+  const DropdownMenuItem(value: "qbm", child: Text("Queen Blue Mint")),
+  const DropdownMenuItem(value: "tbg", child: Text("Teal Blue Gold")),
+  const DropdownMenuItem(value: "vgy", child: Text("Viridian Green Yellow")),
+  const DropdownMenuItem(
+      value: "iog", child: Text("International Orange Green")),
+  const DropdownMenuItem(value: "oco", child: Text("Onyx Carrot Orange")),
+  const DropdownMenuItem(
+      value: "ioa", child: Text("International Orange Apricot")),
+  const DropdownMenuItem(value: "gvb", child: Text("Generic Viridian Blue")),
+  const DropdownMenuItem(value: "scy", child: Text("Space Cadet Yellow")),
+  const DropdownMenuItem(value: "bvr", child: Text("Blue Venetian Red")),
+  const DropdownMenuItem(value: "vsb", child: Text("Vivid Sky Blue")),
+  const DropdownMenuItem(
+      value: "ctv", child: Text("Chartreuse Traditional Violet")),
 ];
 
 Future<String> postEmbedUrl() async {
@@ -148,13 +152,13 @@ class WebViewPage extends StatelessWidget {
                     ),
                     actions: [
                       TextButton(
-                        child: Text('Allow'),
+                        child: const Text('Allow'),
                         onPressed: () {
                           Navigator.of(context).pop(true);
                         },
                       ),
                       TextButton(
-                        child: Text('Denied'),
+                        child: const Text('Denied'),
                         onPressed: () {
                           Navigator.of(context).pop(false);
                         },
