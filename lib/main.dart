@@ -15,7 +15,6 @@ void main() {
 
 Future<String> postEmbedUrl() async {
   // Perform POST Function
-  HttpOverrides.global = MyHttpOverrides();
   var url = Uri.parse(
       'https://demos.lacunasoftware.com/api/signer/embedded?allowElectronic=true');
   var response = await http.post(url);
