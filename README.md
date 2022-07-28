@@ -1,16 +1,15 @@
-# flutter_signer
+# signer-flutter
 
-A new Flutter project.
+Embedded signature sample for mobile devices, it has been tested on an Android emulator (API 31).
 
-## Getting Started
+To run the project, start debugging the `lib/main.dart` file, you will need an Android phone or Android emulator. To check which devices are available for flutter, run:
 
-This project is a starting point for a Flutter application.
+> `flutter devices`
 
-A few resources to get you started if this is your first Flutter project:
+Make sure you're running in a compatible device. Next, navigate to the project folder and install dependencies with:
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+> `flutter pub get`
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+And finally, run the project with:
+
+> `flutter run`
