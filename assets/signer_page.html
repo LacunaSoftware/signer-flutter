@@ -48,14 +48,17 @@
 </style>
 
 <body>
-    <script type="text/javascript" src="https://cdn.lacunasoftware.com/libs/signer/lacuna-signer-widget-0.5.0.min.js"
-        integrity="sha256-AVAkc2mvhbaWVqyfqHomvdnzhPOLHDn0QLCifiD/Zpk=" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://cdn.lacunasoftware.com/libs/signer/lacuna-signer-widget-0.6.0.min.js"
+    integrity="sha256-TM1zGyxt8+FQ3VcihnbovQlTP1pBRAVLSKKTOxRBIGw="
+    crossorigin="anonymous"></script>
     <script type="text/javascript">
         window.addEventListener("flutterInAppWebViewPlatformReady", function (event) {
             window.flutter_inappwebview.callHandler('sign')
                 .then(function (result) {
                     var element = document.getElementById('embed-container');
-                    var widget = new LacunaSignerWidget({ disableDocumentPreview: result.disableDocumentPreview });
+                    var widget = new LacunaSignerWidget({ 
+                        disableDocumentPreview: result.disableDocumentPreview, 
+                        theme: result.theme});
                     widget.on(widget.events.documentSigned, function (e) {
                         alert('Document ' + e.id + ' signed\nReturning to main screen');
                         element.classList.remove("no-preview-frame-container")

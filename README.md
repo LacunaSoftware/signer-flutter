@@ -13,3 +13,5 @@ Make sure you're running in a compatible device. Next, navigate to the project f
 And finally, run the project with:
 
 > `flutter run`
+
+In `lib/main.dart` inside `postEmbedUrl()` function, it is recommended to switch the url to the endpoint used in your application for further testing. 

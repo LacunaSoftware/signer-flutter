@@ -11,6 +11,38 @@ void main() {
   runApp(const MyApp());
 }
 
+List<DropdownMenuItem<String>> lacunaThemeItems = [
+  DropdownMenuItem(child: Text("Default theme"), value: ""),
+  DropdownMenuItem(child: Text("Amaranth Pacific Blue"), value: "apb"),
+  DropdownMenuItem(child: Text("Amazon Cornell Red"), value: "acr"),
+  DropdownMenuItem(child: Text("Azure Lime Green"), value: "azg"),
+  DropdownMenuItem(child: Text("Castleton Green Orange"), value: "cgo"),
+  DropdownMenuItem(child: Text("Cerulean Lime Green"), value: "clg"),
+  DropdownMenuItem(child: Text("Charcoal Amazonite"), value: "cam"),
+  DropdownMenuItem(child: Text("Cobalt Lemon Curry"), value: "clc"),
+  DropdownMenuItem(child: Text("Dark Cerulean Green"), value: "dcg"),
+  DropdownMenuItem(child: Text("Dark Grey Yellow"), value: "dgy"),
+  DropdownMenuItem(child: Text("Dark Indigo Red"), value: "dir"),
+  DropdownMenuItem(child: Text("English Vermillion Arsenic"), value: "eva"),
+  DropdownMenuItem(child: Text("Green Dark Coral"), value: "gdc"),
+  DropdownMenuItem(child: Text("Independence Green"), value: "idg"),
+  DropdownMenuItem(child: Text("Metallic Seaweed Emerald"), value: "mse"),
+  DropdownMenuItem(child: Text("Onyx Satin Gold"), value: "osg"),
+  DropdownMenuItem(child: Text("Oxford Blue Green"), value: "obg"),
+  DropdownMenuItem(child: Text("Persian Plum Sand"), value: "pps"),
+  DropdownMenuItem(child: Text("Queen Blue Mint"), value: "qbm"),
+  DropdownMenuItem(child: Text("Teal Blue Gold"), value: "tbg"),
+  DropdownMenuItem(child: Text("Viridian Green Yellow"), value: "vgy"),
+  DropdownMenuItem(child: Text("International Orange Green"), value: "iog"),
+  DropdownMenuItem(child: Text("Onyx Carrot Orange"), value: "oco"),
+  DropdownMenuItem(child: Text("International Orange Apricot"), value: "ioa"),
+  DropdownMenuItem(child: Text("Generic Viridian Blue"), value: "gvb"),
+  DropdownMenuItem(child: Text("Space Cadet Yellow"), value: "scy"),
+  DropdownMenuItem(child: Text("Blue Venetian Red"), value: "bvr"),
+  DropdownMenuItem(child: Text("Vivid Sky Blue"), value: "vsb"),
+  DropdownMenuItem(child: Text("Chartreuse Traditional Violet"), value: "ctv"),
+];
+
 Future<String> postEmbedUrl() async {
   // Perform POST Function
   var url = Uri.parse(
@@ -66,10 +98,12 @@ class MyHomePage extends StatefulWidget {
 class WebViewPage extends StatelessWidget {
   final String url;
   final bool disableDocumentPreview;
+  String? themeValue;
   WebViewPage({
     Key? key,
     required this.url,
     required this.disableDocumentPreview,
+    this.themeValue,
   }) : super(key: key);
   @override
   Widget build(BuildContext context) {
@@ -82,7 +116,8 @@ class WebViewPage extends StatelessWidget {
                   callback: (args) {
                     return {
                       'embedUrl': url,
-                      'disableDocumentPreview': disableDocumentPreview
+                      'disableDocumentPreview': disableDocumentPreview,
+                      'theme': themeValue
                     };
                   });
               controller.addJavaScriptHandler(
@@ -146,6 +181,8 @@ class WebViewPage extends StatelessWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   late InAppWebViewController webViewController;
+  String _themeVal = "";
+  bool _isChecked = false;
 
   void _sign(bool disableDocumentPreview) async {
     var embedUrl = await postEmbedUrl();
@@ -159,7 +196,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
     Navigator.of(context).push(MaterialPageRoute(
         builder: (BuildContext context) => WebViewPage(
-            url: url, disableDocumentPreview: disableDocumentPreview)));
+            url: url,
+            disableDocumentPreview: disableDocumentPreview,
+            themeValue: _themeVal)));
   }
 
   @override
@@ -170,6 +209,7 @@ class _MyHomePageState extends State<MyHomePage> {
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
+
     return Scaffold(
       body: Center(
           // Center is a layout widget. It takes a single child and positions it
@@ -197,13 +237,27 @@ class _MyHomePageState extends State<MyHomePage> {
             style: TextStyle(fontSize: 16, height: 4.0),
           ),
           const Text("Please select an option:", textScaleFactor: 1.2),
-          ElevatedButton(
-            onPressed: () => _sign(false),
-            child: const Text("Sign document"),
+          const Text("Select a theme for your widget:", textScaleFactor: 1.2),
+          DropdownButton<String>(
+            items: lacunaThemeItems,
+            value: _themeVal,
+            onChanged: (String? selectedItem) => setState(() {
+              _themeVal = selectedItem!;
+            }),
+          ),
+          CheckboxListTile(
+            title: const Text("Disable preview of document"),
+            value: _isChecked,
+            onChanged: (bool? value) {
+              // This is where we update the state when the checkbox is tapped
+              setState(() {
+                _isChecked = value!;
+              });
+            },
           ),
           ElevatedButton(
-            onPressed: () => _sign(true),
-            child: const Text("Sign document without preview"),
+            onPressed: () => _sign(_isChecked),
+            child: const Text("Sign document"),
           ),
         ],
       )), // This trailing comma makes auto-formatting nicer for build methods.
