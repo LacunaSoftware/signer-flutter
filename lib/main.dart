@@ -7,8 +7,6 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 
-import './lacuna_signer_widget.dart';
-
 void main() {
   runApp(const MyApp());
 }
