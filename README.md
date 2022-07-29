@@ -14,7 +14,9 @@ And finally, run the project with:
 
 > `flutter run`
 
-**Important**: In `lib/main.dart` inside `postEmbedUrl()` function, you should switch the url to the endpoint used in your application for further testing. The code can be found at line 53 as shown in the variable below:
+**Important**: In `lib/main.dart` inside `postEmbedUrl()` function, you should switch the url to the endpoint used in your application for further testing. The code can be found as shown in the variable below. The URL should be used **ONLY FOR DEMONSTRATION** purposes:
 
 > `var url = Uri.parse(
       'https://demos.lacunasoftware.com/api/signer/embeddeallowElectronic=true');`
+
+When creating a real application replace the URL with one from your own backend server. The endpoint should be responsible for creating a document and/or retrieving the embedded URL for a specific signer - as explained in our [integration guide](https://docs.lacunasoftware.com/en-us/articles/signer/integration-guide.html).

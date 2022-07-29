@@ -48,8 +48,12 @@ List<DropdownMenuItem<String>> lacunaThemeItems = [
 ];
 
 Future<String> postEmbedUrl() async {
-  // Important: This URL should point to your backend application,
-  // please swap the current URL for your endpoint host.
+  // IMPORTANT: This URL should be used ONLY FOR DEMONSTRATION purposes!!!!
+  // When creating a real application replace the URL with one from
+  // your own backend server. The endpoint should be responsible for creating a
+  // document and/or retrieving the embedded URL for a specific signer -
+  // as explained in our integration guide
+  // (https://docs.lacunasoftware.com/en-us/articles/signer/integration-guide.html).
   var url = Uri.parse(
       'https://demos.lacunasoftware.com/api/signer/embedded?allowElectronic=true');
 
