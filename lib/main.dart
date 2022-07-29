@@ -240,7 +240,6 @@ class _MyHomePageState extends State<MyHomePage> {
             textScaleFactor: 1.0,
             style: TextStyle(fontSize: 16, height: 4.0),
           ),
-          const Text("Please select an option:", textScaleFactor: 1.2),
           const Text("Select a theme for your widget:", textScaleFactor: 1.2),
           DropdownButton<String>(
             items: lacunaThemeItems,
