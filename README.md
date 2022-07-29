@@ -14,4 +14,7 @@ And finally, run the project with:
 
 > `flutter run`
 
-In `lib/main.dart` inside `postEmbedUrl()` function, it is recommended to switch the url to the endpoint used in your application for further testing. 
+**Important**: In `lib/main.dart` inside `postEmbedUrl()` function, you should switch the url to the endpoint used in your application for further testing. The code can be found at line 53 as shown in the variable below:
+
+> `var url = Uri.parse(
+      'https://demos.lacunasoftware.com/api/signer/embeddeallowElectronic=true');`

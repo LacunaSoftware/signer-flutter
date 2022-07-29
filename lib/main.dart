@@ -48,9 +48,12 @@ List<DropdownMenuItem<String>> lacunaThemeItems = [
 ];
 
 Future<String> postEmbedUrl() async {
-  // Perform POST Function
+  // Important: This URL should point to your backend application,
+  // please swap the current URL for your endpoint host.
   var url = Uri.parse(
       'https://demos.lacunasoftware.com/api/signer/embedded?allowElectronic=true');
+
+  // Perform POST Function
   var response = await http.post(url);
   return response.body;
 }
