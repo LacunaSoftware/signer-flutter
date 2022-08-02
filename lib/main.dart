@@ -73,17 +73,9 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Signer Demo Home Page'),
+      home: const MyHomePage(title: 'Embedded Signer Flutter Demo'),
     );
   }
 }
@@ -104,6 +96,124 @@ class MyHomePage extends StatefulWidget {
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  late InAppWebViewController webViewController;
+  String _themeVal = "";
+  bool _isChecked = false;
+  bool _buttonEnabled = true;
+
+  //Function which shows Alert Dialog
+  alertDialog(BuildContext context, String message) {
+    // This is the ok button
+    Widget ok = ElevatedButton(
+      child: const Text("OK"),
+      onPressed: () {
+        Navigator.of(context).pop();
+        setState(() {
+          _buttonEnabled = true;
+        });
+      },
+    );
+    // show the alert dialog
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Error perfoming HTTP request!"),
+          content: Text(
+              "The request could not be completed, try again!\nErrorMessage:$message"),
+          actions: [
+            ok,
+          ],
+        );
+      },
+    );
+  }
+
+  void _sign(bool disableDocumentPreview) async {
+    await postEmbedUrl()
+        .then((embedUrl) => renderWebView(embedUrl, disableDocumentPreview))
+        .catchError((err) => {alertDialog(context, err.toString())});
+  }
+
+  Future<void> renderWebView(String url, bool disableDocumentPreview) async {
+    LocationPermission permission = await Geolocator.checkPermission();
+    await Geolocator.requestPermission();
+    await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+
+    bool result = await Navigator.of(context).push(MaterialPageRoute(
+        builder: (BuildContext context) => WebViewPage(
+            url: url,
+            disableDocumentPreview: disableDocumentPreview,
+            themeValue: _themeVal)));
+
+    setState(() {
+      _buttonEnabled = result;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // This method is rerun every time setState is called.
+    // The Flutter framework has been optimized to make rerunning build methods
+    // fast, so that you can just rebuild anything that needs updating rather
+    // than having to individually change instances of widgets.
+
+    return Scaffold(
+      body: Center(
+          // Center is a layout widget. It takes a single child and positions it
+          // in the middle of the parent.
+          child: Column(
+        // Column is also a layout widget. It takes a list of children and
+        // arranges them vertically. By default, it sizes itself to fit its
+        // children horizontally, and tries to be as tall as its parent.
+        // Column has various properties to control how it sizes itself and
+        // how it positions its children. Here we use mainAxisAlignment to
+        // center the children vertically; the main axis here is the vertical
+        // axis because Columns are vertical (the cross axis would be
+        // horizontal).
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          const Text(
+            "Welcome to the embedded signatures mobile sample!",
+            textScaleFactor: 1.0,
+            style: TextStyle(fontSize: 16, height: 4.0),
+          ),
+          const Text("Select a theme for your widget:", textScaleFactor: 1.2),
+          DropdownButton<String>(
+            items: lacunaThemeItems,
+            value: _themeVal,
+            onChanged: (String? selectedItem) => setState(() {
+              _themeVal = selectedItem!;
+            }),
+          ),
+          CheckboxListTile(
+            title: const Text("Disable preview of document"),
+            value: _isChecked,
+            onChanged: (bool? value) {
+              // This is where we update the state when the checkbox is tapped
+              setState(() {
+                _isChecked = value!;
+              });
+            },
+          ),
+          ElevatedButton(
+            onPressed: _buttonEnabled
+                ? () async {
+                    _sign(_isChecked);
+                    setState(() {
+                      _buttonEnabled = false;
+                    });
+                  }
+                : null,
+            child: const Text("Sign document"),
+          ),
+        ],
+      )), // This trailing comma makes auto-formatting nicer for build methods.
+    );
+  }
 }
 
 class WebViewPage extends StatelessWidget {
@@ -134,7 +244,7 @@ class WebViewPage extends StatelessWidget {
               controller.addJavaScriptHandler(
                   handlerName: 'unrenderView',
                   callback: (args) {
-                    Navigator.pop(context);
+                    Navigator.pop(context, true);
                   });
             },
             initialOptions: InAppWebViewGroupOptions(
@@ -187,90 +297,5 @@ class WebViewPage extends StatelessWidget {
                   resources: resources,
                   action: PermissionRequestResponseAction.GRANT);
             }));
-  }
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  late InAppWebViewController webViewController;
-  String _themeVal = "";
-  bool _isChecked = false;
-
-  void _sign(bool disableDocumentPreview) async {
-    var embedUrl = await postEmbedUrl();
-    renderWebView(embedUrl, disableDocumentPreview);
-  }
-
-  Future<void> renderWebView(String url, bool disableDocumentPreview) async {
-    LocationPermission permission = await Geolocator.checkPermission();
-    await Geolocator.requestPermission();
-    await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-
-    Navigator.of(context).push(MaterialPageRoute(
-        builder: (BuildContext context) => WebViewPage(
-            url: url,
-            disableDocumentPreview: disableDocumentPreview,
-            themeValue: _themeVal)));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-
-    return Scaffold(
-      body: Center(
-          // Center is a layout widget. It takes a single child and positions it
-          // in the middle of the parent.
-          child: Column(
-        // Column is also a layout widget. It takes a list of children and
-        // arranges them vertically. By default, it sizes itself to fit its
-        // children horizontally, and tries to be as tall as its parent.
-        //
-        // Invoke "debug painting" (press "p" in the console, choose the
-        // "Toggle Debug Paint" action from the Flutter Inspector in Android
-        // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-        // to see the wireframe for each widget.
-        //
-        // Column has various properties to control how it sizes itself and
-        // how it positions its children. Here we use mainAxisAlignment to
-        // center the children vertically; the main axis here is the vertical
-        // axis because Columns are vertical (the cross axis would be
-        // horizontal).
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          const Text(
-            "Welcome to the embedded signatures mobile sample!",
-            textScaleFactor: 1.0,
-            style: TextStyle(fontSize: 16, height: 4.0),
-          ),
-          const Text("Select a theme for your widget:", textScaleFactor: 1.2),
-          DropdownButton<String>(
-            items: lacunaThemeItems,
-            value: _themeVal,
-            onChanged: (String? selectedItem) => setState(() {
-              _themeVal = selectedItem!;
-            }),
-          ),
-          CheckboxListTile(
-            title: const Text("Disable preview of document"),
-            value: _isChecked,
-            onChanged: (bool? value) {
-              // This is where we update the state when the checkbox is tapped
-              setState(() {
-                _isChecked = value!;
-              });
-            },
-          ),
-          ElevatedButton(
-            onPressed: () => _sign(_isChecked),
-            child: const Text("Sign document"),
-          ),
-        ],
-      )), // This trailing comma makes auto-formatting nicer for build methods.
-    );
   }
 }
