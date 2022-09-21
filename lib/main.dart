@@ -54,12 +54,20 @@ Future<String> postEmbedUrl() async {
   // document and/or retrieving the embedded URL for a specific signer -
   // as explained in our integration guide
   // (https://docs.lacunasoftware.com/en-us/articles/signer/integration-guide.html).
-  var url = Uri.parse(
-      'https://demos.lacunasoftware.com/api/signer/embedded?allowElectronic=true');
-
+  // var url = Uri.parse(
+  // 'https://signer-lac.azurewebsites.net/document/key/VLHMZZQ2FRWTGF8RT3PE/sign-embedded?ticket=0216bb9b-c3d0-4191-9ed1-20fbb9c114fd');
   // Perform POST Function
-  var response = await http.post(url);
-  return response.body;
+  // var response = await http.get(url);
+
+  // bool result = await Navigator.of(context).push(MaterialPageRoute(
+  //       builder: (BuildContext context) => WebViewPage(
+  //             url: url,
+  //             // disableDocumentPreview: disableDocumentPreview,
+  //             // requireSelfieAuth: requireSelfieAuth,
+  //             // themeValue: _themeVal
+  //           )));
+
+  return 'https://signer-lac.azurewebsites.net/document/key/VLHMZZQ2FRWTGF8RT3PE/sign-embedded?ticket=0216bb9b-c3d0-4191-9ed1-20fbb9c114fd';
 }
 
 class MyApp extends StatelessWidget {
@@ -102,6 +110,7 @@ class _MyHomePageState extends State<MyHomePage> {
   late InAppWebViewController webViewController;
   String _themeVal = "";
   bool _isChecked = false;
+  bool _isSelfie = false;
   bool _buttonEnabled = true;
 
   //Function which shows Alert Dialog
@@ -132,22 +141,41 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void _sign(bool disableDocumentPreview) async {
-    await postEmbedUrl()
-        .then((embedUrl) => renderWebView(embedUrl, disableDocumentPreview))
-        .catchError((err) => {alertDialog(context, err.toString())});
+  void _sign(bool disableDocumentPreview, bool requireSelfieAuth) async {
+    await postEmbedUrl().then((request) => renderSelfieWebView(request));
+
+    // .then((embedUrl) => renderWebView(embedUrl
+    // , disableDocumentPreview, requireSelfieAuth
+    // )).catchError((err) => {alertDialog(context, err.toString())});
   }
 
-  Future<void> renderWebView(String url, bool disableDocumentPreview) async {
+  Future<void> renderSelfieWebView(String url) async {
+    LocationPermission permission = await Geolocator.checkPermission();
+    await Geolocator.requestPermission();
+    await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+
+    bool result = await Navigator.of(context).push(MaterialPageRoute(
+        builder: (BuildContext context) => SelfieWebViewPage(url: url)));
+
+    setState(() {
+      _buttonEnabled = result;
+    });
+  }
+
+  Future<void> renderWebView(String url
+      // , bool disableDocumentPreview, bool requireSelfieAuth)
+      ) async {
     LocationPermission permission = await Geolocator.checkPermission();
     await Geolocator.requestPermission();
     await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
 
     bool result = await Navigator.of(context).push(MaterialPageRoute(
         builder: (BuildContext context) => WebViewPage(
-            url: url,
-            disableDocumentPreview: disableDocumentPreview,
-            themeValue: _themeVal)));
+              url: url,
+              // disableDocumentPreview: disableDocumentPreview,
+              // requireSelfieAuth: requireSelfieAuth,
+              // themeValue: _themeVal
+            )));
 
     setState(() {
       _buttonEnabled = result;
@@ -199,10 +227,20 @@ class _MyHomePageState extends State<MyHomePage> {
               });
             },
           ),
+          CheckboxListTile(
+            title: const Text("Use selfie for authentication"),
+            value: _isSelfie,
+            onChanged: (bool? value) {
+              // This is where we update the state when the checkbox is tapped
+              setState(() {
+                _isSelfie = value!;
+              });
+            },
+          ),
           ElevatedButton(
             onPressed: _buttonEnabled
                 ? () async {
-                    _sign(_isChecked);
+                    _sign(_isChecked, _isSelfie);
                     setState(() {
                       _buttonEnabled = false;
                     });
@@ -216,16 +254,98 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
+class SelfieWebViewPage extends StatelessWidget {
+  final String url;
+  SelfieWebViewPage({Key? key, required this.url
+      // required this.disableDocumentPreview,
+      // required this.requireSelfieAuth,
+      // this.themeValue,
+      })
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        body: InAppWebView(
+            initialFile: 'assets/selfie_signer_page.html',
+            onWebViewCreated: (controller) {
+              controller.addJavaScriptHandler(
+                  handlerName: 'sign',
+                  callback: (args) {
+                    return {
+                      'embedUrl': url,
+                    };
+                  });
+              controller.addJavaScriptHandler(
+                  handlerName: 'unrenderView',
+                  callback: (args) {
+                    Navigator.pop(context, true);
+                  });
+            },
+            initialOptions: InAppWebViewGroupOptions(
+                crossPlatform: InAppWebViewOptions(),
+                android: AndroidInAppWebViewOptions(
+//useHybridComposition: true
+                    )),
+            androidOnGeolocationPermissionsShowPrompt:
+                (InAppWebViewController controller, String origin) async {
+              bool result = await showDialog(
+                context: context,
+                barrierDismissible: false, // user must tap button!
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Text('Allow access location $origin'),
+                    content: SingleChildScrollView(
+                      child: ListBody(
+                        children: [
+                          Text('Allow access location $origin'),
+                        ],
+                      ),
+                    ),
+                    actions: [
+                      TextButton(
+                        child: const Text('Allow'),
+                        onPressed: () {
+                          Navigator.of(context).pop(true);
+                        },
+                      ),
+                      TextButton(
+                        child: const Text('Denied'),
+                        onPressed: () {
+                          Navigator.of(context).pop(false);
+                        },
+                      ),
+                    ],
+                  );
+                },
+              );
+              if (result) {
+                return Future.value(GeolocationPermissionShowPromptResponse(
+                    origin: origin, allow: true, retain: true));
+              } else {
+                return Future.value(GeolocationPermissionShowPromptResponse(
+                    origin: origin, allow: false, retain: false));
+              }
+            },
+            androidOnPermissionRequest: (controller, origin, resources) async {
+              return PermissionRequestResponse(
+                  resources: resources,
+                  action: PermissionRequestResponseAction.GRANT);
+            }));
+  }
+}
+
 class WebViewPage extends StatelessWidget {
   final String url;
-  final bool disableDocumentPreview;
+  // final bool disableDocumentPreview;
+  // final bool requireSelfieAuth;
   String? themeValue;
-  WebViewPage({
-    Key? key,
-    required this.url,
-    required this.disableDocumentPreview,
-    this.themeValue,
-  }) : super(key: key);
+  WebViewPage({Key? key, required this.url
+      // required this.disableDocumentPreview,
+      // required this.requireSelfieAuth,
+      // this.themeValue,
+      })
+      : super(key: key);
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -237,7 +357,9 @@ class WebViewPage extends StatelessWidget {
                   callback: (args) {
                     return {
                       'embedUrl': url,
-                      'disableDocumentPreview': disableDocumentPreview,
+                      // 'disableDocumentPreview': disableDocumentPreview,
+                      // 'requireSelfieAuthenticationToSignElectronically':
+                      // requireSelfieAuth,
                       'theme': themeValue
                     };
                   });
