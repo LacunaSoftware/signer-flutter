@@ -54,6 +54,7 @@
         window.addEventListener("flutterInAppWebViewPlatformReady", function (event) {
             window.flutter_inappwebview.callHandler('sign')
                 .then(function (result) {
+                    isFlutter = true;
                     var element = document.getElementById('embed-container');
                     var widget = new LacunaSignerWidget();
                     widget.on(widget.events.documentSigned, function (e) {
@@ -67,13 +68,16 @@
                     //     element.classList.add("no-preview-frame-container");
                     //     element.classList.remove("frame-container");
                     // }
+                            
                     widget.render(result.embedUrl, 'embed-container');
                 });
         });
     </script>
-    <div id="embed-container" class="frame-container">
+    <!-- <div id="embed-container" class="frame-container"></div> -->
+    <div id="fileInputDiv">
+        <label for="file" class="btn btn-primary">Take picture</label>
+        <input id="file" type="file" accept="image/*" capture="" style="visibility:hidden;">
     </div>
-
 </body>
 
 </html>
