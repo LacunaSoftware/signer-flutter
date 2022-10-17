@@ -36,9 +36,9 @@ dependencies:
   cupertino_icons: ^1.0.2
   js: ^0.6.4
   http: ^0.13.4
-  flutter_inappwebview: ^5.4.3+7
   geolocator: ^9.0.1
   permission_handler: ^10.0.1
+  flutter_inappwebview: ^5.5.0
 
 dev_dependencies:
   flutter_test:

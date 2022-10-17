@@ -1,11 +1,8 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:http/http.dart' as http;
 import 'package:permission_handler/permission_handler.dart';
 
 Future main() async {
@@ -157,8 +154,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> renderSelfieWebView(String url) async {
     WidgetsFlutterBinding.ensureInitialized();
-    PermissionStatus status2 = await Permission.camera.request();
-    LocationPermission permission = await Geolocator.checkPermission();
+    await Permission.camera.request();
+    await Geolocator.checkPermission();
     await Geolocator.requestPermission();
     await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
 
@@ -173,7 +170,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> renderWebView(String url
       // , bool disableDocumentPreview, bool requireSelfieAuth)
       ) async {
-    LocationPermission permission = await Geolocator.checkPermission();
+    await Geolocator.checkPermission();
     await Geolocator.requestPermission();
     await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
 
