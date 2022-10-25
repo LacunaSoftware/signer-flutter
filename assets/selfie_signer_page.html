@@ -55,6 +55,7 @@
             window.flutter_inappwebview.callHandler('sign')
                 .then(function (result) {
                     isFlutter = true;
+                    alert(navigator.userAgent);
                     var element = document.getElementById('embed-container');
                     var widget = new LacunaSignerWidget();
                     widget.on(widget.events.documentSigned, function (e) {
@@ -62,6 +63,11 @@
                         element.classList.remove("no-preview-frame-container")
                         element.classList.add("frame-container");
                         window.flutter_inappwebview.callHandler('unrenderView');
+                    });
+
+                    var fileInput = document.getElementById("file");
+                    fileInput.addEventListener("change", function(event) {
+                        alert("You took a picture!" + event + fileInput.value)   
                     });
 
                     // if(result.disableDocumentPreview){
