@@ -55,7 +55,7 @@ Future<String> postEmbedUrl() async {
   // as explained in our integration guide
   // (https://docs.lacunasoftware.com/en-us/articles/signer/integration-guide.html).
   var url = Uri.parse(
-      'https://demos.lacunasoftware.com/api/signer/embedded?allowElectronic=true');
+      'https://demos.lacunasoftware.com/api/signer/embedded?useCloudUser=true');
 
   // Perform POST Function
   var response = await http.post(url);
