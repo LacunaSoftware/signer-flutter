@@ -1,13 +1,13 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:geolocator/geolocator.dart';
+import 'dart:developer';
 import 'package:http/http.dart' as http;
 
-void main() {
+Future main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
   runApp(const MyApp());
 }
 
@@ -47,6 +47,8 @@ List<DropdownMenuItem<String>> lacunaThemeItems = [
       value: "ctv", child: Text("Chartreuse Traditional Violet")),
 ];
 
+const urlCloudProviders = ["vidaas", "app-psc"];
+
 Future<String> postEmbedUrl() async {
   // IMPORTANT: This URL should be used ONLY FOR DEMONSTRATION purposes!!!!
   // When creating a real application replace the URL with one from
@@ -59,7 +61,7 @@ Future<String> postEmbedUrl() async {
 
   // Perform POST Function
   var response = await http.post(url);
-  return response.body;
+  return "https://signer-beta.azurewebsites.net/document/key/GPVTMFXX5NQND6K2D8SM/sign-embedded?ticket=6b77960c-eadd-48d6-b41b-6a9c95f4047e";
 }
 
 class MyApp extends StatelessWidget {
@@ -99,7 +101,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  late InAppWebViewController webViewController;
+  InAppWebViewController? webViewController;
   String _themeVal = "";
   bool _isChecked = false;
   bool _buttonEnabled = true;
@@ -160,7 +162,6 @@ class _MyHomePageState extends State<MyHomePage> {
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
-
     return Scaffold(
       body: Center(
           // Center is a layout widget. It takes a single child and positions it
@@ -230,6 +231,15 @@ class WebViewPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
         body: InAppWebView(
+            shouldOverrideUrlLoading: (controller, navigationAction) async {
+              print("shouldOverrideUrlLoading activated");
+              final uri = navigationAction.request.url!;
+              print("uri = " + uri.toString());
+              if (uri.toString().startsWith('intent://')) {
+                return NavigationActionPolicy.CANCEL;
+              }
+              return NavigationActionPolicy.ALLOW;
+            },
             initialFile: 'assets/signer_page.html',
             onWebViewCreated: (controller) {
               controller.addJavaScriptHandler(
@@ -246,6 +256,29 @@ class WebViewPage extends StatelessWidget {
                   callback: (args) {
                     Navigator.pop(context, true);
                   });
+            },
+            onUpdateVisitedHistory: (controller, url, androidIsReload) async {
+              // DEBUG
+              print("onUpdateVisitedHistory activated");
+              inspect(url);
+
+              // Case VIDAAS
+              if (url!.scheme.isNotEmpty &&
+                  url.scheme.contains("intent") &&
+                  url.host == "vidaas.page.link") {
+                final fragmentSplit = url.fragment.split(";");
+                inspect(fragmentSplit);
+                final fallbackUrl =
+                    fragmentSplit[4].split("S.browser_fallback_url=");
+                inspect(fallbackUrl[1]);
+                controller.loadUrl(
+                    urlRequest: URLRequest(url: Uri.parse(fallbackUrl[1])));
+              }
+              // urlCloudProviders.forEach((element) {
+              //   if(url.toString().contains(element)){
+              //     print("URL contains ", element, " in string");
+              //   }
+              // })
             },
             initialOptions: InAppWebViewGroupOptions(
                 crossPlatform: InAppWebViewOptions(),
@@ -296,6 +329,8 @@ class WebViewPage extends StatelessWidget {
               return PermissionRequestResponse(
                   resources: resources,
                   action: PermissionRequestResponseAction.GRANT);
-            }));
+            },
+            onConsoleMessage: (controller, consoleMessage) =>
+                {print(consoleMessage.message)}));
   }
 }
