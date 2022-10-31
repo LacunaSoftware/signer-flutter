@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'dart:developer';
 import 'package:http/http.dart' as http;
 
@@ -61,7 +62,8 @@ Future<String> postEmbedUrl() async {
 
   // Perform POST Function
   var response = await http.post(url);
-  return "https://signer-beta.azurewebsites.net/document/key/GPVTMFXX5NQND6K2D8SM/sign-embedded?ticket=6b77960c-eadd-48d6-b41b-6a9c95f4047e";
+
+  return "https://signer-lac.azurewebsites.net/document/key/KKGWP8XX3327SR6KMSVB/sign-embedded?ticket=937699b8-96d8-4250-86d3-11f7e33625ae";
 }
 
 class MyApp extends StatelessWidget {
@@ -232,13 +234,33 @@ class WebViewPage extends StatelessWidget {
     return Scaffold(
         body: InAppWebView(
             shouldOverrideUrlLoading: (controller, navigationAction) async {
-              print("shouldOverrideUrlLoading activated");
-              final uri = navigationAction.request.url!;
-              print("uri = " + uri.toString());
-              if (uri.toString().startsWith('intent://')) {
+              inspect(navigationAction.request.url);
+              final uri = navigationAction.request.url!.toString();
+              if (uri.startsWith('intent://')) {
                 return NavigationActionPolicy.CANCEL;
               }
               return NavigationActionPolicy.ALLOW;
+            },
+            onCreateWindow: (controller, createWindowAction) async {
+              print("onCreateWindow called");
+              showGeneralDialog(
+                  context: context,
+                  barrierDismissible: true,
+                  barrierLabel: MaterialLocalizations.of(context)
+                      .modalBarrierDismissLabel,
+                  pageBuilder: (BuildContext buildContext, Animation animation,
+                      Animation secondaryAnimation) {
+                    return Center(
+                        child: Container(
+                      width: MediaQuery.of(buildContext).size.width,
+                      height: MediaQuery.of(buildContext).size.height,
+                      child: InAppWebView(
+                          windowId: createWindowAction.windowId,
+                          initialUrlRequest:
+                              URLRequest(url: createWindowAction.request.url)),
+                    ));
+                  });
+              return true;
             },
             initialFile: 'assets/signer_page.html',
             onWebViewCreated: (controller) {
@@ -257,32 +279,11 @@ class WebViewPage extends StatelessWidget {
                     Navigator.pop(context, true);
                   });
             },
-            onUpdateVisitedHistory: (controller, url, androidIsReload) async {
-              // DEBUG
-              print("onUpdateVisitedHistory activated");
-              inspect(url);
-
-              // Case VIDAAS
-              if (url!.scheme.isNotEmpty &&
-                  url.scheme.contains("intent") &&
-                  url.host == "vidaas.page.link") {
-                final fragmentSplit = url.fragment.split(";");
-                inspect(fragmentSplit);
-                final fallbackUrl =
-                    fragmentSplit[4].split("S.browser_fallback_url=");
-                inspect(fallbackUrl[1]);
-                controller.loadUrl(
-                    urlRequest: URLRequest(url: Uri.parse(fallbackUrl[1])));
-              }
-              // urlCloudProviders.forEach((element) {
-              //   if(url.toString().contains(element)){
-              //     print("URL contains ", element, " in string");
-              //   }
-              // })
-            },
             initialOptions: InAppWebViewGroupOptions(
-                crossPlatform: InAppWebViewOptions(),
-                android: AndroidInAppWebViewOptions(
+                crossPlatform: InAppWebViewOptions(
+                    useShouldOverrideUrlLoading: true,
+                    javaScriptCanOpenWindowsAutomatically: true),
+                android: AndroidInAppWebViewOptions(supportMultipleWindows: true
 //useHybridComposition: true
                     )),
             androidOnGeolocationPermissionsShowPrompt:
