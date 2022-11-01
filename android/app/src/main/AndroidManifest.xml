@@ -27,9 +27,8 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" /> 
                 <category android:name="android.intent.category.BROWSABLE" /> 
-                <!-- Accepts URIs that begin with YOUR_SCHEME://YOUR_HOST --> 
                 <data android:scheme="intent" android:host="vidaas.page.link" /> 
-                <data android:scheme="https" android:host="pscsafeweb.safewebpss.com.br" />
+                <data android:scheme="intent" android:host="homolog.psc.lacunasoftware" /> 
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

@@ -38,6 +38,7 @@ dependencies:
   http: ^0.13.4
   flutter_inappwebview: ^5.4.3+7
   geolocator: ^9.0.1
+  android_intent_plus: ^3.1.5
 
 dev_dependencies:
   flutter_test:
