@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'dart:developer';
 import 'package:http/http.dart' as http;
 
@@ -233,14 +232,6 @@ class WebViewPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
         body: InAppWebView(
-            shouldOverrideUrlLoading: (controller, navigationAction) async {
-              inspect(navigationAction.request.url);
-              final uri = navigationAction.request.url!.toString();
-              if (uri.startsWith('intent://')) {
-                return NavigationActionPolicy.CANCEL;
-              }
-              return NavigationActionPolicy.ALLOW;
-            },
             onCreateWindow: (controller, createWindowAction) async {
               print("onCreateWindow called");
               showGeneralDialog(
@@ -255,9 +246,22 @@ class WebViewPage extends StatelessWidget {
                       width: MediaQuery.of(buildContext).size.width,
                       height: MediaQuery.of(buildContext).size.height,
                       child: InAppWebView(
-                          windowId: createWindowAction.windowId,
-                          initialUrlRequest:
-                              URLRequest(url: createWindowAction.request.url)),
+                        windowId: createWindowAction.windowId,
+                        initialUrlRequest:
+                            URLRequest(url: createWindowAction.request.url),
+                        shouldOverrideUrlLoading:
+                            (controller, navigationAction) async {
+                          inspect(navigationAction.request.url);
+                          final uri = navigationAction.request.url!.toString();
+                          if (uri.startsWith('intent://')) {
+                            return NavigationActionPolicy.CANCEL;
+                          }
+                          return NavigationActionPolicy.ALLOW;
+                        },
+                        initialOptions: InAppWebViewGroupOptions(
+                            crossPlatform: InAppWebViewOptions(
+                                useShouldOverrideUrlLoading: true)),
+                      ),
                     ));
                   });
               return true;
