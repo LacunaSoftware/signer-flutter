@@ -3,6 +3,7 @@ import 'package:android_intent_plus/android_intent.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:flutter/services.dart';
 import 'dart:developer';
 import 'package:http/http.dart' as http;
 
@@ -63,7 +64,7 @@ Future<String> postEmbedUrl() async {
   // Perform POST Function
   var response = await http.post(url);
 
-  return "https://signer-lac.azurewebsites.net/document/key/KKGWP8XX3327SR6KMSVB/sign-embedded?ticket=ded64dcb-c556-4239-a7b4-d39177112af5";
+  return "https://signer-lac.azurewebsites.net/document/key/KKGWP8XX3327SR6KMSVB/sign-embedded?ticket=937699b8-96d8-4250-86d3-11f7e33625ae";
 }
 
 class MyApp extends StatelessWidget {
@@ -223,6 +224,7 @@ class WebViewPage extends StatelessWidget {
   final String url;
   final bool disableDocumentPreview;
   String? themeValue;
+  static const channel = MethodChannel('yourpackageName/channelName');
   WebViewPage({
     Key? key,
     required this.url,
@@ -256,13 +258,6 @@ class WebViewPage extends StatelessWidget {
                           final uri = Uri.encodeFull(
                               navigationAction.request.url!.toString());
                           if (uri.startsWith('intent://')) {
-                            final intent = AndroidIntent(
-                              action: 'ACTION_VIEW',
-                              data: uri,
-                            );
-                            intent
-                                .launch()
-                                .catchError((error) => throw (error));
                             return NavigationActionPolicy.CANCEL;
                           }
                           return NavigationActionPolicy.ALLOW;
@@ -297,7 +292,7 @@ class WebViewPage extends StatelessWidget {
                     useShouldOverrideUrlLoading: true,
                     javaScriptCanOpenWindowsAutomatically: true),
                 android: AndroidInAppWebViewOptions(supportMultipleWindows: true
-//useHybridComposition: true
+                    //useHybridComposition: true
                     )),
             androidOnGeolocationPermissionsShowPrompt:
                 (InAppWebViewController controller, String origin) async {
@@ -346,5 +341,12 @@ class WebViewPage extends StatelessWidget {
             },
             onConsoleMessage: (controller, consoleMessage) =>
                 {print(consoleMessage.message)}));
+  }
+
+  Future<void> _handleIntent(Uri url) async {
+    print(url.toString());
+    final int handleIntent = await channel
+        .invokeMethod('handleIntent', <String, String>{'uri': url.toString()});
+    print(handleIntent);
   }
 }
