@@ -20,8 +20,8 @@ class MainActivity: FlutterActivity() {
         channel.setMethodCallHandler { call, result ->
             if (call.method == "handleIntent") {
                 var uri: String?  = call.argument("uri");
-                Intent intent = Intent.parseUri(uri, Intent.URI_INTENT_SCHEME);
-                startActivity(intent);
+                // Intent intent = Intent.parseUri(uri, Intent.URI_INTENT_SCHEME);
+                // startActivity(intent);
                 Log.d("TAG", "message");
                 Toast.makeText(this, uri, Toast.LENGTH_LONG).show()
             }
