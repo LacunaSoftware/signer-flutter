@@ -6,6 +6,7 @@ import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import java.lang.reflect.Method
+import android.content.Intent 
 
 
 class MainActivity: FlutterActivity() {
@@ -20,8 +21,8 @@ class MainActivity: FlutterActivity() {
         channel.setMethodCallHandler { call, result ->
             if (call.method == "handleIntent") {
                 var uri: String?  = call.argument("uri");
-                // Intent intent = Intent.parseUri(uri, Intent.URI_INTENT_SCHEME);
-                // startActivity(intent);
+                var intent: Intent = Intent.parseUri(uri, Intent.URI_INTENT_SCHEME);
+                startActivity(intent);
                 Log.d("TAG", "message");
                 Toast.makeText(this, uri, Toast.LENGTH_LONG).show()
             }

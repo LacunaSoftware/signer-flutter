@@ -257,6 +257,7 @@ class WebViewPage extends StatelessWidget {
                           final uri = Uri.encodeFull(
                               navigationAction.request.url!.toString());
                           if (uri.startsWith('intent://')) {
+                            _handleIntent(navigationAction.request.url!);
                             return NavigationActionPolicy.CANCEL;
                           }
                           return NavigationActionPolicy.ALLOW;
