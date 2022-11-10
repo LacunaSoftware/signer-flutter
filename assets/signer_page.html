@@ -26,21 +26,41 @@
 
     /* Without preview (document) */
     .no-preview-frame-container {
-      position: relative;
+      /* position: relative; */
       width: 100%;
-      height: 0;
-      padding-bottom: 60.25%;
+      height: auto;
+      /* height: 0; */
+      /* padding-bottom: 60.25%; */
     }
 
     .no-preview-frame-container .frame-responsive {
       width: 100%;
-      height: 200%;
+      height: 100%;
       position: absolute;
-      top: 90%;
+      top: 0;
       left: 0;
       border: none;
     }
     /* End region without preview (document) */
+
+    /* Without preview (document) / cloud signature */
+    .no-preview-cloud-frame-container {
+      /* position: relative; */
+      width: 100%;
+      height: auto;
+      /* height: 0; */
+      /* padding-bottom: 60.25%; */
+    }
+
+    .no-preview-cloud-frame-container .frame-responsive {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      border: none;
+    }
+    /* End region without preview (document) / cloud signature */
   </style>
 
   <body>
@@ -66,12 +86,17 @@
               widget.on(widget.events.documentSigned, function (e) {
                 alert("Document " + e.id + " signed\nReturning to main screen");
                 element.classList.remove("no-preview-frame-container");
+                element.classList.remove("no-preview-cloud-frame-container");
                 element.classList.add("frame-container");
                 window.flutter_inappwebview.callHandler("unrenderView");
               });
-              
+
               if (result.disableDocumentPreview) {
                 element.classList.add("no-preview-frame-container");
+                element.classList.remove("frame-container");
+              }
+              else if (result.disableDocumentPreview && result.isCloudSignature) {
+                element.classList.add("no-preview-cloud-frame-container");
                 element.classList.remove("frame-container");
               }
               widget.render(result.embedUrl, "embed-container");

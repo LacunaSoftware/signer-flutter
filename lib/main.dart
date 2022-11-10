@@ -48,7 +48,7 @@ List<DropdownMenuItem<String>> lacunaThemeItems = [
       value: "ctv", child: Text("Chartreuse Traditional Violet")),
 ];
 
-const urlCloudProviders = ["vidaas", "app-psc"];
+// const urlCloudProviders = ["vidaas", "app-psc"];
 
 Future<String> postEmbedUrl() async {
   // IMPORTANT: This URL should be used ONLY FOR DEMONSTRATION purposes!!!!
@@ -57,11 +57,11 @@ Future<String> postEmbedUrl() async {
   // document and/or retrieving the embedded URL for a specific signer -
   // as explained in our integration guide
   // (https://docs.lacunasoftware.com/en-us/articles/signer/integration-guide.html).
-  var url = Uri.parse(
-      'https://demos.lacunasoftware.com/api/signer/embedded?useCloudUser=true');
+  // var url = Uri.parse(
+  //     'https://demos.lacunasoftware.com/api/signer/embedded?useCloudUser=true');
 
-  // Perform POST Function
-  var response = await http.post(url);
+  // // Perform POST Function
+  // var response = await http.post(url);
 
   return "https://signer-lac.azurewebsites.net/document/key/KKGWP8XX3327SR6KMSVB/sign-embedded?ticket=84c97c0a-6526-480d-978a-93234756fabe";
 }
@@ -106,6 +106,7 @@ class _MyHomePageState extends State<MyHomePage> {
   InAppWebViewController? webViewController;
   String _themeVal = "";
   bool _isChecked = false;
+  bool _isCloudSignature = true;
   bool _buttonEnabled = true;
 
   //Function which shows Alert Dialog
@@ -151,7 +152,8 @@ class _MyHomePageState extends State<MyHomePage> {
         builder: (BuildContext context) => WebViewPage(
             url: url,
             disableDocumentPreview: disableDocumentPreview,
-            themeValue: _themeVal)));
+            themeValue: _themeVal,
+            isCloudSignature: _isCloudSignature)));
 
     setState(() {
       _buttonEnabled = result;
@@ -223,13 +225,15 @@ class WebViewPage extends StatefulWidget {
   final String url;
   final bool disableDocumentPreview;
   String? themeValue;
+  bool? isCloudSignature;
   static const channel = MethodChannel('yourpackageName/channelName');
-  WebViewPage({
-    Key? key,
-    required this.url,
-    required this.disableDocumentPreview,
-    this.themeValue,
-  }) : super(key: key);
+  WebViewPage(
+      {Key? key,
+      required this.url,
+      required this.disableDocumentPreview,
+      this.themeValue,
+      this.isCloudSignature})
+      : super(key: key);
 
   @override
   State<WebViewPage> createState() => _WebViewPageState();
@@ -285,7 +289,8 @@ class _WebViewPageState extends State<WebViewPage> {
                   return {
                     'embedUrl': widget.url,
                     'disableDocumentPreview': widget.disableDocumentPreview,
-                    'theme': widget.themeValue
+                    'theme': widget.themeValue,
+                    'isCloudSignature': widget.isCloudSignature
                   };
                 });
             controller.addJavaScriptHandler(
