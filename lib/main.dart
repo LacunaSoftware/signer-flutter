@@ -63,7 +63,7 @@ Future<String> postEmbedUrl() async {
   // Perform POST Function
   var response = await http.post(url);
 
-  return "https://signer-lac.azurewebsites.net/document/key/KKGWP8XX3327SR6KMSVB/sign-embedded?ticket=540abe27-ae58-4a31-8602-acaf040e8676";
+  return "https://signer-lac.azurewebsites.net/document/key/KKGWP8XX3327SR6KMSVB/sign-embedded?ticket=84c97c0a-6526-480d-978a-93234756fabe";
 }
 
 class MyApp extends StatelessWidget {
@@ -143,7 +143,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> renderWebView(String url, bool disableDocumentPreview) async {
-    LocationPermission permission = await Geolocator.checkPermission();
+    await Geolocator.checkPermission();
     await Geolocator.requestPermission();
     await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
 
@@ -219,7 +219,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-class WebViewPage extends StatelessWidget {
+class WebViewPage extends StatefulWidget {
   final String url;
   final bool disableDocumentPreview;
   String? themeValue;
@@ -230,123 +230,134 @@ class WebViewPage extends StatelessWidget {
     required this.disableDocumentPreview,
     this.themeValue,
   }) : super(key: key);
+
+  @override
+  State<WebViewPage> createState() => _WebViewPageState();
+}
+
+class _WebViewPageState extends State<WebViewPage> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        body: InAppWebView(
-            onCreateWindow: (controller, createWindowAction) async {
-              print("onCreateWindow called");
-              showGeneralDialog(
-                  context: context,
-                  barrierDismissible: true,
-                  barrierLabel: MaterialLocalizations.of(context)
-                      .modalBarrierDismissLabel,
-                  pageBuilder: (BuildContext buildContext, Animation animation,
-                      Animation secondaryAnimation) {
-                    return Center(
-                        child: Container(
-                      width: MediaQuery.of(buildContext).size.width,
-                      height: MediaQuery.of(buildContext).size.height,
-                      child: InAppWebView(
-                        windowId: createWindowAction.windowId,
-                        initialUrlRequest:
-                            URLRequest(url: createWindowAction.request.url),
-                        shouldOverrideUrlLoading:
-                            (controller, navigationAction) async {
-                          inspect(navigationAction.request.url);
-                          final uri = Uri.encodeFull(
-                              navigationAction.request.url!.toString());
-                          if (uri.startsWith('intent://')) {
-                            _handleIntent(navigationAction.request.url!);
-                            return NavigationActionPolicy.CANCEL;
-                          }
-                          return NavigationActionPolicy.ALLOW;
-                        },
-                        initialOptions: InAppWebViewGroupOptions(
-                            crossPlatform: InAppWebViewOptions(
-                                useShouldOverrideUrlLoading: true)),
-                      ),
-                    ));
-                  });
-              return true;
-            },
-            initialFile: 'assets/signer_page.html',
-            onWebViewCreated: (controller) {
-              controller.addJavaScriptHandler(
-                  handlerName: 'sign',
-                  callback: (args) {
-                    return {
-                      'embedUrl': url,
-                      'disableDocumentPreview': disableDocumentPreview,
-                      'theme': themeValue
-                    };
-                  });
-              controller.addJavaScriptHandler(
-                  handlerName: 'unrenderView',
-                  callback: (args) {
-                    Navigator.pop(context, true);
-                  });
-            },
-            initialOptions: InAppWebViewGroupOptions(
-                crossPlatform: InAppWebViewOptions(
-                    useShouldOverrideUrlLoading: true,
-                    javaScriptCanOpenWindowsAutomatically: true),
-                android: AndroidInAppWebViewOptions(supportMultipleWindows: true
-                    //useHybridComposition: true
-                    )),
-            androidOnGeolocationPermissionsShowPrompt:
-                (InAppWebViewController controller, String origin) async {
-              bool result = await showDialog(
+    return WillPopScope(
+        child: Scaffold(
+            body: InAppWebView(
+          onCreateWindow: (controller, createWindowAction) async {
+            showGeneralDialog(
                 context: context,
-                barrierDismissible: false, // user must tap button!
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    title: Text('Allow access location $origin'),
-                    content: SingleChildScrollView(
-                      child: ListBody(
-                        children: [
-                          Text('Allow access location $origin'),
-                        ],
-                      ),
+                barrierDismissible: true,
+                barrierLabel:
+                    MaterialLocalizations.of(context).modalBarrierDismissLabel,
+                pageBuilder: (BuildContext buildContext, Animation animation,
+                    Animation secondaryAnimation) {
+                  return Center(
+                      child: Container(
+                    width: MediaQuery.of(buildContext).size.width,
+                    height: MediaQuery.of(buildContext).size.height,
+                    child: InAppWebView(
+                      windowId: createWindowAction.windowId,
+                      initialUrlRequest:
+                          URLRequest(url: createWindowAction.request.url),
+                      shouldOverrideUrlLoading:
+                          (controller, navigationAction) async {
+                        inspect(navigationAction.request.url);
+                        final uri = Uri.encodeFull(
+                            navigationAction.request.url!.toString());
+                        if (uri.startsWith('intent://')) {
+                          _handleIntent(navigationAction.request.url!);
+                          return NavigationActionPolicy.CANCEL;
+                        }
+                        return NavigationActionPolicy.ALLOW;
+                      },
+                      initialOptions: InAppWebViewGroupOptions(
+                          crossPlatform: InAppWebViewOptions(
+                        useShouldOverrideUrlLoading: true,
+                      )),
                     ),
-                    actions: [
-                      TextButton(
-                        child: const Text('Allow'),
-                        onPressed: () {
-                          Navigator.of(context).pop(true);
-                        },
-                      ),
-                      TextButton(
-                        child: const Text('Denied'),
-                        onPressed: () {
-                          Navigator.of(context).pop(false);
-                        },
-                      ),
-                    ],
-                  );
-                },
-              );
-              if (result) {
-                return Future.value(GeolocationPermissionShowPromptResponse(
-                    origin: origin, allow: true, retain: true));
-              } else {
-                return Future.value(GeolocationPermissionShowPromptResponse(
-                    origin: origin, allow: false, retain: false));
-              }
-            },
-            androidOnPermissionRequest: (controller, origin, resources) async {
-              return PermissionRequestResponse(
-                  resources: resources,
-                  action: PermissionRequestResponseAction.GRANT);
-            },
-            onConsoleMessage: (controller, consoleMessage) =>
-                {print(consoleMessage.message)}));
+                  ));
+                });
+            return true;
+          },
+          initialFile: 'assets/signer_page.html',
+          onWebViewCreated: (controller) {
+            controller.addJavaScriptHandler(
+                handlerName: 'sign',
+                callback: (args) {
+                  return {
+                    'embedUrl': widget.url,
+                    'disableDocumentPreview': widget.disableDocumentPreview,
+                    'theme': widget.themeValue
+                  };
+                });
+            controller.addJavaScriptHandler(
+                handlerName: 'unrenderView',
+                callback: (args) {
+                  Navigator.pop(context, true);
+                });
+          },
+          initialOptions: InAppWebViewGroupOptions(
+              crossPlatform: InAppWebViewOptions(
+                  useShouldOverrideUrlLoading: true,
+                  javaScriptCanOpenWindowsAutomatically: true),
+              android: AndroidInAppWebViewOptions(supportMultipleWindows: true
+
+                  //useHybridComposition: true
+                  )),
+          androidOnGeolocationPermissionsShowPrompt:
+              (InAppWebViewController controller, String origin) async {
+            bool result = await showDialog(
+              context: context,
+              barrierDismissible: false, // user must tap button!
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text('Allow access location $origin'),
+                  content: SingleChildScrollView(
+                    child: ListBody(
+                      children: [
+                        Text('Allow access location $origin'),
+                      ],
+                    ),
+                  ),
+                  actions: [
+                    TextButton(
+                      child: const Text('Allow'),
+                      onPressed: () {
+                        Navigator.of(context).pop(true);
+                      },
+                    ),
+                    TextButton(
+                      child: const Text('Denied'),
+                      onPressed: () {
+                        Navigator.of(context).pop(false);
+                      },
+                    ),
+                  ],
+                );
+              },
+            );
+            if (result) {
+              return Future.value(GeolocationPermissionShowPromptResponse(
+                  origin: origin, allow: true, retain: true));
+            } else {
+              return Future.value(GeolocationPermissionShowPromptResponse(
+                  origin: origin, allow: false, retain: false));
+            }
+          },
+          androidOnPermissionRequest: (controller, origin, resources) async {
+            return PermissionRequestResponse(
+                resources: resources,
+                action: PermissionRequestResponseAction.GRANT);
+          },
+          onConsoleMessage: (controller, consoleMessage) =>
+              {print(consoleMessage.message)},
+        )),
+        onWillPop: () async {
+          Navigator.pop(context, true);
+          return false;
+        });
   }
 
   Future<void> _handleIntent(Uri url) async {
-    print(url.toString());
-    final int handleIntent = await channel
+    await WebViewPage.channel
         .invokeMethod('handleIntent', <String, String>{'uri': url.toString()});
-    print(handleIntent);
   }
 }
